@@ -45,7 +45,8 @@ app.layout = html.Div(id='root-div',children=[
                     {'label': '22,9x32,4cm', 'value': '14.6'}
                 ],
                 value='4.5'
-            )
+            ),
+        html.Div(children='Envelop size:')
     ]),
     html.Div(id='cost-div', children=[
         html.H6(children='Cost'),
