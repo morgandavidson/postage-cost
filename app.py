@@ -16,63 +16,65 @@ from dash.dependencies import Input, Output
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
-# HTML Layout
+# Pandas DataFrame
 
-app.layout = html.Div(id='root-div',children=[
-    html.H3(children='Postal Cost Calculator'),
-    html.Div(id='weight-div', children=[
-        html.H6(children='Weight'),
+df = pd.read_csv('./data/OriginFrance2021.csv')
+envelop_data = pd.read_csv('./data/envelop_data.csv')
 
-        html.Div(children='Number of sheets:'),
-            dcc.Input(id='sheets', value=1, type='number'),
+# Envelop size
 
-        html.Div(children='Sheet height in cm:'),
-            dcc.Input(id='height', value=29.7, type='number'), ' (A4 paper height = 29.7)',
+def envelop_func():
 
-        html.Div(children='Sheet width in cm:'),
-            dcc.Input(id='width', value=21, type='number'), ' (A4 paper width = 21cm)',
-
-        html.Div(children='Sheet grammage in grams:'),
-            dcc.Input(id='grammage', value=80, type='number'),
-
-        html.Div(children='Envelop size:'),
+    return html.Div(
+        children=[
+            dcc.Markdown('Select envelop size'),
             dcc.Dropdown(
-                id='envelop',   
-                options=[
-     	            {'label': '11.4 x 16.2cm', 'value': '3.2'},
-                    {'label': '11 x 22cm', 'value': '4.5'},
-                    {'label': '16.2 x 22.9cm', 'value': '7.5'},
-                    {'label': '22,9x32,4cm', 'value': '14.6'}
-                ],
-                value='4.5'
-            ),
-        html.Div(children='Envelop size:')
-    ]),
-    html.Div(id='cost-div', children=[
-        html.H6(children='Cost'),
+                id='envelop_div',
+                options=[{'label': i, 'value': j} for i,j in zip(envelop_data['size'], envelop_data['weight'])],
+                value=4.5
+            )
+        ]
+    )
 
-        html.Div(children='Origin:'),
-            dcc.Dropdown(
-                id='origin',
-                options=[
-                    {'label': 'France', 'value': './Data/OriginFrance.csv'}
-                ],
-                value='./Data/OriginFrance.csv'
-            ),
+# Origin
 
-        html.Div(children='Destination:'),
-            dcc.Dropdown(
-                id='destination',
-                options=[
-                    {'label': 'France', 'value': 'France'},
-                    {'label': 'International', 'value': 'International'}
-                ],
-                value='France'
-            ),
+def origin_func():
 
-        html.Div(children='Type of letter:'),
+    return html.Div(
+        children=[
+            dcc.Markdown('Select country of departure'),
             dcc.Dropdown(
-                id='lettertype',	   
+                id='origin_div',
+                options=[{'label': 'France', 'value': './data/OriginFrance2021.csv'}],
+                value='./data/OriginFrance2021.csv'
+            )
+        ]
+    )
+
+# Destination
+
+def destination_func():
+    #df = id='country_table'
+    return html.Div(
+        children=[
+            dcc.Markdown('Select country of destination'),
+            dcc.Dropdown(
+                id='destination_div',
+                options=[{'label': i, 'value': i} for i in df['Destination'].drop_duplicates()],
+                value=df['Destination'].drop_duplicates()[0]
+            )
+        ]
+    )
+
+# Letter type (France)
+
+def letter_func():
+
+    return html.Div(
+        children=[
+            dcc.Markdown('Select letter type'),
+            dcc.Dropdown(
+                id='letter_div',
                 options=[
                     {'label': 'Lettre prioritaire', 'value':'Lettre_prioritaire'},
                     {'label': 'Lettre verte', 'value':'Lettre_verte'},
@@ -84,10 +86,68 @@ app.layout = html.Div(id='root-div',children=[
                 ],
                 value='Lettre_verte'
             )
+        ]
+    )
 
+# HTML Layout
 
-    ]),
- ])
+app.layout = html.Div(id='root_div',children=[
+      html.H3(children='Postal Cost Calculator'),
+      html.Div(id='weight_div', children=[
+          html.H6(id='weightoutput_div'),
+     
+          html.Div(children='Number of sheets:'),
+              dcc.Input(id='sheets_div', value=1, type='number'),
+     
+          html.Div(children='Sheet height in cm:'),
+              dcc.Input(id='height_div', value=29.7, type='number'), ' (A4 paper height = 29.7)',
+     
+          html.Div(children='Sheet width in cm:'),
+              dcc.Input(id='width_div', value=21, type='number'), ' (A4 paper width = 21cm)',
+     
+          html.Div(children='Sheet grammage in grams:'),
+              dcc.Input(id='grammage_div', value=80, type='number'),
+         
+          html.Div(children=[envelop_func()]),
+      ]),
+
+      html.Div(id='cost_div', children=[
+          html.H6(id='costoutput_div'),
+          html.Div(children=[origin_func()]),
+          html.Div(children=[destination_func()]),
+          html.Div(children=[letter_func()]),
+#	  html.Div(id='costoutput_div')
+      ]),
+   ])
+
+# Weight
+
+@app.callback(
+    Output('weightoutput_div', 'children'),
+    Input('sheets_div', 'value'),
+    Input('height_div', 'value'),	 
+    Input('width_div', 'value'),
+    Input('grammage_div', 'value'),     
+    Input('envelop_div', 'value')	    
+)
+
+def weight(sheets_div, height_div, width_div, grammage_div, envelop_div):
+    x = (sheets_div * height_div * width_div * (grammage_div/10000)) + envelop_div
+    return round(x+.5)
+   # x = round(x+.5)
+   # return ('Weight: {} grams'.format(x))
+
+# Cost
+
+@app.callback(
+    Output('costoutput_div', 'children'),
+    Input('weightoutput_div', 'children'),
+    Input('destination_div', 'value'),
+    Input('letter_div', 'value')
+)
+def cost(weightoutput, destination_div, letter_div):
+    x = df[df['Max_weight'] == df.loc[df['Max_weight']>=weightoutput,'Max_weight'].min()].loc[df['Destination']==destination_div][letter_div].item()
+    return ('Cost: {}'.format(x))
 
 # Main
 
