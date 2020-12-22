@@ -55,6 +55,9 @@ def origin_func():
 
 def destination_func():
     #df = id='country_table'
+    #path = dcc.Store(id='country_table')
+    #df = pd.read_csv(path)
+    #df = pd.read_csv(id='country_table')
     return html.Div(
         children=[
             dcc.Markdown('Select country of destination'),
@@ -94,8 +97,9 @@ def letter_func():
 app.layout = html.Div(id='root_div',children=[
       html.H3(children='Postal Cost Calculator'),
       html.Div(id='weight_div', children=[
-          html.H6(id='weightoutput_div'),
-     
+          html.H6(id='dummy_div',
+	      children=['Weight is ', html.Span(id='weightoutput_div'), ' grams']
+	  ),
           html.Div(children='Number of sheets:'),
               dcc.Input(id='sheets_div', value=1, type='number'),
      
@@ -147,7 +151,7 @@ def weight(sheets_div, height_div, width_div, grammage_div, envelop_div):
 )
 def cost(weightoutput, destination_div, letter_div):
     x = df[df['Max_weight'] == df.loc[df['Max_weight']>=weightoutput,'Max_weight'].min()].loc[df['Destination']==destination_div][letter_div].item()
-    return ('Cost: {}'.format(x))
+    return ('Cost is {}'.format(x))
 
 # Main
 
