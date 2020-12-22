@@ -1,5 +1,5 @@
 # Libraries
-#     - Data wrangling
+#    - Data wrangling
 
 import pandas as pd
 
@@ -16,9 +16,10 @@ from dash.dependencies import Input, Output
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
-# Pandas DataFrame
+# Loading Pandas DataFrame
 
 df = pd.read_csv('./data/OriginFrance2021.csv')
+#df = pd.DataFrame.from_dict(test)
 envelop_data = pd.read_csv('./data/envelop_data.csv')
 
 # Envelop size
@@ -39,7 +40,6 @@ def envelop_func():
 # Origin
 
 def origin_func():
-
     return html.Div(
         children=[
             dcc.Markdown('Select country of departure'),
@@ -94,9 +94,9 @@ def letter_func():
 
 # HTML Layout
 
-app.layout = html.Div(id='root_div',children=[
+app.layout = html.Div(id='root_div', className="row", children=[
       html.H3(children='Postal Cost Calculator'),
-      html.Div(id='weight_div', children=[
+      html.Div(id='weight_div', className="three columns", children=[
           html.H6(id='dummy_div',
 	      children=['Weight is ', html.Span(id='weightoutput_div'), ' grams']
 	  ),
@@ -115,7 +115,7 @@ app.layout = html.Div(id='root_div',children=[
           html.Div(children=[envelop_func()]),
       ]),
 
-      html.Div(id='cost_div', children=[
+      html.Div(id='cost_div', className="three columns", children=[
           html.H6(id='costoutput_div'),
           html.Div(children=[origin_func()]),
           html.Div(children=[destination_func()]),
