@@ -92,6 +92,10 @@ def letter_func():
         ]
     )
 
+# Deployment
+
+server = app.server
+
 # HTML Layout
 
 app.layout = html.Div(id='root_div', className="row", children=[
