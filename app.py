@@ -18,8 +18,6 @@ app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
 # Loading Pandas DataFrame
 
-df = pd.read_csv('./data/OriginFrance2021.csv')
-#df = pd.DataFrame.from_dict(test)
 envelop_data = pd.read_csv('./data/envelop_data.csv')
 
 # Envelop size
@@ -54,22 +52,16 @@ def origin_func():
 # Destination
 
 def destination_func():
-    #df = id='country_table'
-    #path = dcc.Store(id='country_table')
-    #df = pd.read_csv(path)
-    #df = pd.read_csv(id='country_table')
     return html.Div(
         children=[
             dcc.Markdown('Select country of destination'),
-            dcc.Dropdown(
-                id='destination_div',
-                options=[{'label': i, 'value': i} for i in df['Destination'].drop_duplicates()],
-                value=df['Destination'].drop_duplicates()[0]
+            dcc.Dropdown(id='destinations_out'
+
             )
         ]
     )
 
-# Letter type (France)
+# Letter type
 
 def letter_func():
 
@@ -77,17 +69,7 @@ def letter_func():
         children=[
             dcc.Markdown('Select letter type'),
             dcc.Dropdown(
-                id='letter_div',
-                options=[
-                    {'label': 'Lettre prioritaire', 'value':'Lettre_prioritaire'},
-                    {'label': 'Lettre verte', 'value':'Lettre_verte'},
-                    {'label': 'Lettre suivie', 'value':'Lettre_suivie'},
-                    {'label': 'Ecopli', 'value':'Ecopli'},
-                    {'label': 'Recommandé R1', 'value':'Recommandé_R1'},
-                    {'label': 'Recommandé R2', 'value':'Recommandé_R2'},
-                    {'label': 'Recommandé R3', 'value':'Recommandé_R3'}
-                ],
-                value='Lettre_verte'
+                id='letter_out'
             )
         ]
     )
@@ -128,6 +110,34 @@ app.layout = html.Div(id='root_div', className="row", children=[
       ]),
    ])
 
+# letter type options
+
+@app.callback(
+    Output('letter_out', 'options'),
+    Output('letter_out', 'value'),
+    Input('origin_div', 'value')	    
+)
+def letter_type_options(path):
+    df = pd.read_csv(path)
+    valuevalues = list(df.columns.values)
+    valuevalues.remove('Destination')
+    valuevalues.remove('Max_weight')
+    del valuevalues[len(valuevalues)-1]
+    labelvalues = [v.replace('_', ' ') for v in valuevalues]
+    l = [{'label':i,'value':j} for i,j in zip(labelvalues, valuevalues)]
+    return l, list(l[1].values())[1]
+
+# Destinations options
+
+@app.callback(
+    Output('destinations_out', 'options'),
+    Output('destinations_out', 'value'),
+    Input('origin_div', 'value')	    
+)
+def destination_options(path):
+    df = pd.read_csv(path)
+    return [{'label': i, 'value': i} for i in df['Destination'].drop_duplicates()], df['Destination'].drop_duplicates()[0]
+
 # Weight
 
 @app.callback(
@@ -149,12 +159,14 @@ def weight(sheets_div, height_div, width_div, grammage_div, envelop_div):
 
 @app.callback(
     Output('costoutput_div', 'children'),
+    Input('origin_div','value'),
     Input('weightoutput_div', 'children'),
-    Input('destination_div', 'value'),
-    Input('letter_div', 'value')
+    Input('destinations_out', 'value'),
+    Input('letter_out', 'value')
 )
-def cost(weightoutput, destination_div, letter_div):
-    x = df[df['Max_weight'] == df.loc[df['Max_weight']>=weightoutput,'Max_weight'].min()].loc[df['Destination']==destination_div][letter_div].item()
+def cost(origin_div, weightoutput, destination_div, letter_out):
+    df = pd.read_csv(origin_div)
+    x = df[df['Max_weight'] == df.loc[df['Max_weight']>=weightoutput,'Max_weight'].min()].loc[df['Destination']==destination_div][letter_out].item()
     return ('Cost is {}'.format(x))
 
 # Main
